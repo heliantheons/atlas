@@ -23,19 +23,6 @@ export interface FileUploadResult {
   public_url: string
 }
 
-export interface SendMailRequest {
-  to: string
-  subject?: string
-  template_id: string
-  variables?: Record<string, unknown>
-  data?: Record<string, unknown>
-  expires_at?: string
-}
-
-export interface SendMailResponse {
-  delivery_id: string
-}
-
 export interface TemplateCreateRequest {
   template_id: string
   name: string
@@ -72,10 +59,6 @@ export const chaosTemplateApi = {
   delete: (templateId: string) => request.delete(`/templates/${templateId}`),
   render: (templateId: string, data: Record<string, unknown>) =>
     request.post<RenderResponse>(`/templates/${templateId}/render`, { data }),
-}
-
-export const chaosMailApi = {
-  send: (data: SendMailRequest) => request.post<SendMailResponse>('/mail', data),
 }
 
 export interface PresignUploadRequest {
