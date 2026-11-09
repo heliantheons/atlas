@@ -33,14 +33,14 @@ mutations continue to use the documented composite key.
 
 ## Chaos
 
-| Area            | Backend contract                                                              | Atlas surface                              | Status before rewrite                       |
-| --------------- | ----------------------------------------------------------------------------- | ------------------------------------------ | ------------------------------------------- |
-| Templates       | `GET/POST /api/templates`, `GET/PATCH/DELETE /api/templates/:id`              | Template inventory and editor              | Present                                     |
-| Preview         | `POST /api/templates/:id/render` with `{ data }`                              | Rendered subject/body preview              | Present                                     |
-| Delivery        | `POST /api/mail` with recipient, template, variables/data and optional expiry | Delivery composer and accepted delivery ID | Partial response/input typing               |
-| Object upload   | `POST /api/presign`, followed by direct `PUT` to `upload_url`                 | Upload queue and public URL result         | Incorrect legacy `/files` multipart request |
-| Historical logs | `GET /api/logs` with bounded filters                                          | Structured log explorer                    | Present                                     |
-| Live logs       | `GET /api/logs/stream` as authenticated SSE                                   | Live log explorer                          | Present                                     |
+| Area            | Backend contract                                                  | Atlas surface                      | Status before rewrite                       |
+| --------------- | ----------------------------------------------------------------- | ---------------------------------- | ------------------------------------------- |
+| Templates       | `GET/POST /api/templates`, `GET/PATCH/DELETE /api/templates/:id`  | Template inventory and editor      | Present                                     |
+| Preview         | `POST /api/templates/:id/render` with `{ data }`                  | Rendered subject/body preview      | Present                                     |
+| Delivery        | `POST /api/mail` with an audience-bound SAT and `Idempotency-Key` | Service-to-service delivery only   | Browser sender removed                      |
+| Object upload   | `POST /api/presign`, followed by direct `PUT` to `upload_url`     | Upload queue and public URL result | Incorrect legacy `/files` multipart request |
+| Historical logs | `GET /api/logs` with bounded filters                              | Structured log explorer            | Present                                     |
+| Live logs       | `GET /api/logs/stream` as authenticated SSE                       | Live log explorer                  | Present                                     |
 
 Chaos has no file-list or object-delete management endpoint. Atlas therefore
 shows the current upload queue and returned object URLs only; it must not imply
@@ -49,6 +49,11 @@ that it can browse or delete the whole bucket.
 Chaos template handlers and Atlas consume one snake_case contract. The previous
 PascalCase persistence-model compatibility path was removed after the backend
 contract was deployed.
+
+Mail delivery is a service-to-service operation. `POST /api/mail` requires an
+audience-bound service access token and a durable `Idempotency-Key`. Atlas
+retains template management and rendering; it does not collect service
+credentials or submit deliveries with a user token.
 
 ## Rewrite completion
 
@@ -65,8 +70,8 @@ contract was deployed.
   are wired to their authoritative endpoints.
 - Merge Patch editors send `null` when an existing nullable override is cleared,
   while create requests omit optional empty values.
-- Chaos template CRUD/render/send, bounded historical/live log queries and
-  presigned direct uploads match the handler request and response contracts.
+- Chaos template CRUD/render, bounded historical/live log queries and presigned
+  direct uploads match the handler request and response contracts.
 
 ## UI behavior required by the contract
 

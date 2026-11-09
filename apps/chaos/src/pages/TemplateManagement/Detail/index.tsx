@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useRequest } from 'ahooks'
-import { Button, Dialog, Empty, Input, Spinner, Tag, toast } from '@heliannuuthus/ui'
-import { ArrowLeft, Clock3, Code2, Edit3, Eye, Mail, Send } from 'lucide-react'
-import { chaosMailApi, chaosTemplateApi } from '@/services'
+import { Button, Dialog, Empty, Spinner, Tag, toast } from '@heliannuuthus/ui'
+import { ArrowLeft, Clock3, Code2, Edit3, Eye, Mail } from 'lucide-react'
+import { chaosTemplateApi } from '@/services'
 import styles from './index.module.scss'
 
 const formatDate = (value: string) =>
@@ -27,9 +27,6 @@ export function Detail() {
   const [previewing, setPreviewing] = useState(false)
   const [previewSubject, setPreviewSubject] = useState('')
   const [previewHtml, setPreviewHtml] = useState('')
-  const [sendOpen, setSendOpen] = useState(false)
-  const [recipient, setRecipient] = useState('')
-  const [sending, setSending] = useState(false)
   const { data, loading, error, refresh } = useRequest(
     () => chaosTemplateApi.getDetail(templateId!),
     { ready: Boolean(templateId) }
@@ -48,25 +45,6 @@ export function Detail() {
       toast.error(reason instanceof Error ? reason.message : '模板渲染失败')
     } finally {
       setPreviewing(false)
-    }
-  }
-
-  const sendTest = async () => {
-    if (!templateId || !recipient.trim()) return
-    setSending(true)
-    try {
-      const result = await chaosMailApi.send({
-        to: recipient.trim(),
-        template_id: templateId,
-        variables: parseVariables(data?.variables),
-      })
-      toast.success(`投递已进入队列：${result.delivery_id}`)
-      setSendOpen(false)
-      setRecipient('')
-    } catch (reason) {
-      toast.error(reason instanceof Error ? reason.message : '测试邮件投递失败')
-    } finally {
-      setSending(false)
     }
   }
 
@@ -112,9 +90,6 @@ export function Detail() {
         <div className={styles.headerActions}>
           <Button variant="outline" onClick={() => void preview()}>
             <Eye aria-hidden="true" /> 渲染预览
-          </Button>
-          <Button variant="outline" onClick={() => setSendOpen(true)} disabled={!data.is_enabled}>
-            <Send aria-hidden="true" /> 测试发送
           </Button>
           {!data.is_builtin ? (
             <Button onClick={() => navigate(`/templates/${templateId}/edit`)}>
@@ -195,6 +170,7 @@ export function Detail() {
           <div className={styles.policyNote}>
             <strong>渲染策略</strong>
             <p>服务端使用 Go template 渲染。预览在隔离 iframe 中展示，不会执行脚本。</p>
+            <p>实际邮件由已授权服务发起投递。</p>
           </div>
         </aside>
       </div>
@@ -218,33 +194,6 @@ export function Detail() {
             sandbox=""
           />
         )}
-      </Dialog>
-
-      <Dialog
-        open={sendOpen}
-        onOpenChange={setSendOpen}
-        title="发送测试邮件"
-        description="使用当前模板和示例变量创建一次真实投递。"
-        footer={
-          <>
-            <Button variant="outline" onClick={() => setSendOpen(false)}>
-              取消
-            </Button>
-            <Button onClick={() => void sendTest()} disabled={sending || !recipient.trim()}>
-              {sending ? <Spinner /> : <Send aria-hidden="true" />} 发送
-            </Button>
-          </>
-        }
-      >
-        <label className={styles.recipientField}>
-          <span>收件邮箱</span>
-          <Input
-            type="email"
-            value={recipient}
-            onChange={event => setRecipient(event.target.value)}
-            placeholder="name@example.com"
-          />
-        </label>
       </Dialog>
     </div>
   )
