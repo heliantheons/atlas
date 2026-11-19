@@ -79,8 +79,8 @@ export function UserMenu({
   const { logout, user } = useAtlasAuth()
   const triggerRef = useRef<HTMLButtonElement>(null)
   const pointerInteractionRef = useRef(false)
-  const userName = user?.nic
-  const userAvatar = user?.pic ?? null
+  const userName = user?.nickname
+  const userAvatar = user?.picture ?? null
 
   const copyOpenId = async () => {
     if (!user?.sub) return
