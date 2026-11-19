@@ -4,6 +4,7 @@ packages:
 
 onlyBuiltDependencies:
   - '@heliannuuthus/ui'
+  - '@heliantheons/aegis-ts'
 
 packageExtensions:
   '@hookform/resolvers@5.4.0':
